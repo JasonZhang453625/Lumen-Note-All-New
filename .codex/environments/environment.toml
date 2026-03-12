@@ -27,3 +27,8 @@ flutter run -d emulator-5554
 name = "直接运行"
 icon = "run"
 command = "flutter run -d emulator-5554"
+
+[[actions]]
+name = "Windows运行"
+icon = "run"
+command = "flutter run -d windows"

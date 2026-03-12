@@ -9,6 +9,7 @@ const double kGroupActionWidth = 92;
 const Color kOpenTransitionBackdrop = Color(0xFFF1F6FA);
 const Duration kDeferredDetailDelay = Duration(milliseconds: 120);
 const Duration kHomeCardExpandDuration = Duration(milliseconds: 680);
+const Duration kHomeCardCollapseDuration = Duration(milliseconds: 400);
 const Duration kHomeCardControlsDelay = Duration(milliseconds: 170);
 const Duration kDetailRevealDuration = Duration(milliseconds: 320);
 
@@ -120,7 +121,7 @@ class _CardExpandRoute<T> extends PageRouteBuilder<T> {
     required Widget child,
   }) : super(
          transitionDuration: kHomeCardExpandDuration,
-         reverseTransitionDuration: const Duration(milliseconds: 520),
+         reverseTransitionDuration: kHomeCardCollapseDuration,
          opaque: false,
          barrierColor: Colors.transparent,
          pageBuilder: (context, animation, secondaryAnimation) => child,
@@ -145,13 +146,15 @@ class _CardExpandRoute<T> extends PageRouteBuilder<T> {
                final showOpacity = Curves.easeOutCubic.transform(
                  ((animation.value - 0.32) / 0.68).clamp(0.0, 1.0),
                );
-               final hideOpacity = ((animation.value - 0.78) / 0.22).clamp(
-                 0.0,
-                 1.0,
+               final collapseFade = Curves.easeOutCubic.transform(
+                 (animation.value / 0.95).clamp(0.0, 1.0),
                );
                final childOpacity = animation.status == AnimationStatus.reverse
-                   ? hideOpacity
+                   ? collapseFade
                    : showOpacity;
+               final shellOpacity = animation.status == AnimationStatus.reverse
+                   ? collapseFade
+                   : 1.0;
 
                return Stack(
                  alignment: Alignment.topLeft,
@@ -167,24 +170,27 @@ class _CardExpandRoute<T> extends PageRouteBuilder<T> {
                    ),
                    Positioned.fromRect(
                      rect: rect,
-                     child: IgnorePointer(
-                       ignoring: animation.status != AnimationStatus.completed,
-                       child: ClipRRect(
-                         borderRadius: BorderRadius.circular(radius),
-                         child: ColoredBox(
-                           color: kOpenTransitionBackdrop,
-                           child: OverflowBox(
-                             alignment: Alignment.topLeft,
-                             minWidth: endRect.width,
-                             maxWidth: endRect.width,
-                             minHeight: endRect.height,
-                             maxHeight: endRect.height,
-                             child: SizedBox(
-                               width: endRect.width,
-                               height: endRect.height,
-                               child: Opacity(
-                                 opacity: childOpacity,
-                                 child: child,
+                     child: Opacity(
+                       opacity: shellOpacity,
+                       child: IgnorePointer(
+                         ignoring: animation.status != AnimationStatus.completed,
+                         child: ClipRRect(
+                           borderRadius: BorderRadius.circular(radius),
+                           child: ColoredBox(
+                             color: kOpenTransitionBackdrop,
+                             child: OverflowBox(
+                               alignment: Alignment.topLeft,
+                               minWidth: endRect.width,
+                               maxWidth: endRect.width,
+                               minHeight: endRect.height,
+                               maxHeight: endRect.height,
+                               child: SizedBox(
+                                 width: endRect.width,
+                                 height: endRect.height,
+                                 child: Opacity(
+                                   opacity: childOpacity,
+                                   child: child,
+                                 ),
                                ),
                              ),
                            ),
